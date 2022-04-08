@@ -33,6 +33,9 @@ import SearchBar from 'components/SearchBar.vue'; //
 import CustomSwitch from 'components/CustomSwitch.vue'; //
 import { LoadData, SaveData, StorageItem } from './classes/storage';
 import { computed, defineComponent, ref, useCssModule, watch } from 'vue';
+import { useQuery } from '@vue/apollo-composable';
+import gql from 'graphql-tag';
+import { mainOidc } from 'main';
 
 export default defineComponent({
   name: 'App',
@@ -41,7 +44,29 @@ export default defineComponent({
     CustomSwitch,
   },
   setup() {
+    console.log('Define component');
+    console.log(mainOidc.isAuthenticated);
+
+    if (!mainOidc.isAuthenticated) {
+      console.log('authentication');
+      mainOidc.signIn();
+      console.log(mainOidc.isAuthenticated);
+    }
+
     // Setup
+    const { result } = useQuery(
+      gql`
+        {
+          users {
+            id
+            name
+          }
+        }
+      `
+    );
+
+    console.log('Define component ok');
+
     const Style = useCssModule();
 
     const Store = ref(LoadData());
@@ -63,7 +88,12 @@ export default defineComponent({
       else Store.value.sort((x, y) => (x.timestamp > y.timestamp ? 1 : -1));
     });
 
+    watch(result, (value) => {
+      console.log(value);
+    });
+
     return {
+      result,
       SelectedKey,
       SearchText,
       isExactMatch,
@@ -130,3 +160,5 @@ export default defineComponent({
 
 // Style
 </style>
+
+<style src="vue3-date-time-picker/dist/main.css"></style>
